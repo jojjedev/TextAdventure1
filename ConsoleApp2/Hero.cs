@@ -12,6 +12,7 @@ public class Hero
     public int currentDmg;
     
     public static void SetDmg(Hero hero)
+    
     {
         int modifier = 0;
         if (hero.Items.Contains("Shiny Sword"))

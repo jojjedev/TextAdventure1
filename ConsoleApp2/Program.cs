@@ -41,6 +41,10 @@ class Program
             {
                 BarnFight(hero);
             }
+            else if (hero.Location == "backroom")
+            {
+                BackRoom(hero);
+            }
             else if (hero.Location == "church")
             {
                 Church(hero);
@@ -112,7 +116,7 @@ class Program
         } while (!AskYesOrNo($"So, {name} it is? "));
 
         hero.Name = name;
-        hero.Location = "church";
+        hero.Location = "tableroom";
     }
     static void TableRoom(Hero hero)
     {
@@ -239,20 +243,29 @@ class Program
 
     static void Courtyard(Hero hero)
     {
-        Console.WriteLine("The courtyard is dark and path is leading away from the house towards a huge church." +
-                          "Something feels off though. There seems to be candle light glowing in the windows of the church," +
-                          "even though it's long since abandoned. You decide to go and investigate it.");
-        if (AskYesOrNo("Do you walk towards the door? "))
+        Console.WriteLine("The courtyard is dark and path is leading away from the house. Up ahead it splits in two directions," +
+                          "one path towards the church and another path towards the barn.");
+        while (true)
         {
-            Console.WriteLine("The door looks even bigger when you get closer");
-            hero.Location = "church";
-        }
-        else
-        {
-            hero.Location = "corridor";
-        }
+            string response = Ask("Do you walk towards the CHURCH or the BARN?");
+            if (response == "church")
+            {
+                Console.WriteLine("You get a strange feeling as you aproach the chruch." +
+                                  "There is candle light glowing in the windows, even though it's long since abandoned." +
+                                  "As you get close, you realise that the door looks even bigger than you thought. You decide" +
+                                  "to investigate and open the door.");
+                hero.Location = "church";
+                break;
+            }
+            else if (response == "barn")
+            {
+                Console.WriteLine("You head towards the barn.");
+                hero.Location = "barn";
+                break;
+            }
 
-        Console.Read(); // Fråga om varför denna read metoden skippades utan if satsen över.
+            Console.Read(); // Fråga om varför denna read metoden skippades utan if satsen över.
+        }
     }
 
     static void Barn(Hero hero)
@@ -266,16 +279,111 @@ class Program
         else if (response == "church")
         {
             hero.Location = "church";
+
         }
+        
     }
 
     static void BarnFight(Hero hero)
     {
+        Hero.SetDmg(hero);
         List <Enemy> enemies = new List<Enemy>();
+        for (int i = 0; i < 3; i++)
+        {
+            Enemy enemy = new Enemy();
+            enemy.Name = $"Minion{i+1}";
+            enemy.SetDmg(enemy);
+            enemies.Add(enemy);
+        }
+        
+        for(; enemies.Count() > 0; )
+        {
+            while (enemies[0].Health > 0)
+            {
+                EnemyTurn(hero, enemies[0]);
+                PlayerTurn(hero, enemies[0]);
+                if (hero.Health <= 0)
+                {
+                    Console.WriteLine("The final hit brings you to a knee, and you fall unconscious");
+                    Console.ReadLine();
+                    hero.Location = "gameover";
+                }
+            }
+
+            enemies.Remove(enemies[0]);
+        }
+        Console.WriteLine("You manage take down the animals! You decide to investigate the room in the back of the barn.");
+        Console.ReadLine();
+        hero.Location = "backroom";
+    }
+
+    static void BackRoom(Hero hero)
+    {
+        Console.WriteLine("You are in the backroom");
+        Console.ReadLine();
+        
+        Console.WriteLine("You see a shiny set of armor");
+        if (AskYesOrNo("Do you wish to equip it?"))
+        {
+            hero.Health += 50;
+            hero.Items.Add("Shiny Armor");
+        }
+        Console.WriteLine("You also see a potion with a red liquid in it");
+        if (AskYesOrNo("Do you drink the potion?"))
+        {
+            int result = RollD6();
+            if (hero.Health == 150)
+            {
+                Console.WriteLine("You have not recieved any damage so the potion has no effect");
+            }
+            else if (result <= 2)
+            {
+                Console.WriteLine("The potion tastes good but has clearly been here for awhile and the effect i greatly reduced");
+                hero.Health += 10;
+                if (hero.Health >= 150)
+                {
+                    hero.Health = 150;
+                    Console.WriteLine("You are now at full HP!");
+                }
+                else
+                {
+                    Console.WriteLine($"You have {hero.Health} HP!");
+                }
+            }
+            else if (result > 2 && result <= 4)
+            {
+                Console.WriteLine("The potion creates a warm feeling inside you, but does not feel fully potent");
+                hero.Health += 20;
+                if (hero.Health >= 150)
+                {
+                    hero.Health = 150;
+                    Console.WriteLine("You are now at full HP!");
+                }
+                else
+                {
+                    Console.WriteLine($"You have {hero.Health} HP!");
+                }
+            }
+            else
+            {
+                Console.WriteLine("The potion fills you with warmth and a surge of energy ");
+                hero.Health += 30;
+                if (hero.Health >= 150)
+                {
+                    hero.Health = 150;
+                    Console.WriteLine("You are now at full HP!");
+                }
+                else
+                {
+                    Console.WriteLine($"You have {hero.Health} HP!");
+                }
+            }
+        }
+        Console.WriteLine("After gathering your things, you decide to head towards the church.");
+        hero.Location = "church";
     }
     static void Vault(Hero hero)
     {
-        
         Console.WriteLine("As you enter the room you find riches beyond your imagination. \nYou go to grab a goblet of pure gold, but as soon as you touch it everything goes black");
         hero.Location = "gameover";
         Console.ReadLine();
@@ -312,8 +420,9 @@ class Program
                           "The figure turns towards you with a huge axe and starts to charge towards you.");
         bool winner;
         Enemy boss = new Enemy();
+        boss.Name = "Minotaur";
         Hero.SetDmg(hero);
-        
+        boss.SetDmg(boss);
         
         while(true)
         {
@@ -329,7 +438,7 @@ class Program
                 hero.Location = "vault";
                 break;
             }
-            EnemyTurn(hero);
+            EnemyTurn(hero, boss);
             PlayerTurn(hero, boss);
             
         }
@@ -337,83 +446,80 @@ class Program
     }
     // Lägg till flavour
 
-    static void EnemyTurn(Hero hero)
+    static void EnemyTurn(Hero hero, Enemy enemy)
     {
-        int swipeDmg = 10;
-        int strikeDmg = 25;
-        int kickDmg = 15;
         int roll = RollD6();
         
         if (roll <= 2)
             {
-                Console.WriteLine("The minotaur swipes his axe at you");
+                enemy.AttackSwipe(enemy);
                 string response = Ask("What do you want to do? Jump, parry or dodge? ");
                 if (response == "parry")
                 {
-                    hero.Health -= swipeDmg / 2;
-                    Console.WriteLine($"You attempt to parry his swipe, but he is too strong. You take {swipeDmg / 2} damage ");
+                    hero.Health -= enemy.swipeDmg / 2;
+                    Console.WriteLine($"You attempt to parry the swipe, but you still take {enemy.swipeDmg / 2} damage.");
                     Console.WriteLine(hero.Health);
                 }
 
                 if (response == "dodge")
                 {
-                    hero.Health -= swipeDmg;
-                    Console.WriteLine("You attempt to dodge backwards, but his reach is too far and his axe hits you ");
+                    hero.Health -= enemy.swipeDmg;
+                    Console.WriteLine($"You attempt to dodge backwards, but not far enough! You take {enemy.swipeDmg} damage.");
                     Console.WriteLine(hero.Health);
                 }
 
                 if (response == "jump")
                 {
-                    Console.WriteLine("He is not used to fighting someone small, you manage to jump over his swipe and take no damage. ");
+                    Console.WriteLine("You manage to jump over the attack and avoid all damage.");
                     Console.WriteLine(hero.Health);
                 }
 
             }
             else if (roll > 2 && roll <= 4) //varför får vi varning här?
             {
-                Console.WriteLine("The minotaur attemps to kick you ");
+                enemy.AttackKick(enemy); 
                 string response = Ask("What do you want to do? Jump, parry or dodge? ");
                 if (response == "parry")
                 {
-                    hero.Health -= kickDmg;
-                    Console.WriteLine($"You attempt to parry his kick, but he is too strong. You take {kickDmg} damage ");
+                    hero.Health -= enemy.kickDmg;
+                    Console.WriteLine($"You attempt to parry the kick, but you are unsuccessful. You take {enemy.kickDmg} damage.");
                     Console.WriteLine(hero.Health);
                 }
 
                 if (response == "dodge")
                 {
-                    Console.WriteLine("You dodge to the side and his kick misses you. You take no damage. ");
+                    Console.WriteLine("You dodge to the side of the kick and avoid all damage!");
                     Console.WriteLine(hero.Health);
                 }
 
                 if (response == "jump")
                 {
-                    hero.Health -= kickDmg / 2;
-                    Console.WriteLine($"You try to jump over his kick but he catches your legs mid jump. You land awkwardly and take {kickDmg / 2} damage. ");
+                    hero.Health -= enemy.kickDmg / 2;
+                    Console.WriteLine($"You try to jump over the kick but it catches your legs mid jump. You land awkwardly and take {enemy.kickDmg / 2} damage. ");
                     Console.WriteLine(hero.Health);
                 }
             }
             else if (roll >= 5)
             {
-                Console.WriteLine("The minotaur uses his axe to strike you from above ");
+                enemy.AttackStrike(enemy);
                 string response = Ask("What do you want to do? Jump, parry or dodge? ");
                 if (response == "parry")
                 {
-                    Console.WriteLine($"You parry his attack and deflect it towards the ground. You take no damage.");
+                    Console.WriteLine($"You parry the attack and deflect it away from you. You avoid all damage!");
                     Console.WriteLine(hero.Health);
                 }
 
                 if (response == "dodge")
                 {
-                    hero.Health -= strikeDmg / 2;
-                    Console.WriteLine($"His attack graces your arm while trying to dodge to the side. You take {strikeDmg / 2} damage.");
+                    hero.Health -= enemy.strikeDmg / 2;
+                    Console.WriteLine($"The attack graces your arm while trying to dodge to the side. You take {enemy.strikeDmg / 2} damage.");
                     Console.WriteLine(hero.Health);
                 }
 
                 if (response == "jump")
                 {
-                    hero.Health -= strikeDmg * 2;
-                    Console.WriteLine($"You jump straight into the axe and take a grievous wound. You take {strikeDmg * 2} damage. ");
+                    hero.Health -= enemy.strikeDmg * 2;
+                    Console.WriteLine($"You jump straight into the attack and suffer a grievous wound. You take {enemy.strikeDmg * 2} damage. ");
                     Console.WriteLine(hero.Health);
                 }
                 
@@ -422,26 +528,28 @@ class Program
     }
 
     // Lägg till flavour
-    static void PlayerTurn(Hero hero, Enemy boss)
+    static void PlayerTurn(Hero hero, Enemy enemy)
     {
         string response = Ask("It's your turn to attack. \nDo you play it safe and SLASH in a big arch \nor try for a more risky and precise STAB? ");
         if (response == "slash")
         {
-            boss.Health -= hero.currentDmg;
-            Console.WriteLine($"{boss.Health} Boss HP");
+            enemy.Health -= hero.currentDmg;
+            Console.WriteLine($"{enemy.Health} Boss HP");
         }
         else if (response == "stab")
         {
             if (RollD6() >= 4)
             {
-                boss.Health -= hero.currentDmg * 2;
+                enemy.Health -= hero.currentDmg * 2;
                 Console.WriteLine("You hit your mark!");
-                Console.Write($" {boss.Health} Boss HP");
+                Console.WriteLine(hero.currentDmg);
+                Console.WriteLine($" {enemy.Health} {enemy.Name} HP");
             }
             else
             {
-                Console.WriteLine("The boss dodges to the side and you miss.");
-                Console.Write($" {boss.Health} Boss HP");
+                Console.WriteLine("The enemy dodges to the side and you miss.");
+                Console.WriteLine(hero.currentDmg);
+                Console.WriteLine($" {enemy.Health} {enemy.Name} HP");
             }
         }
         
