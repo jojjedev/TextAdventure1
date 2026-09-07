@@ -33,36 +33,37 @@ class Program
             {
                 Courtyard(hero);
             }
+            else if (hero.Location == "barn")
+            {
+                Barn(hero);
+            }
+            else if (hero.Location == "barnfight")
+            {
+                BarnFight(hero);
+            }
             else if (hero.Location == "church")
             {
                 Church(hero);
+            }
+            else if (hero.Location == "vault")
+            {
+                Vault(hero);
+            }
+            else if (hero.Location == "basement")
+            {
+                Basement(hero);
+            }
+            else if (hero.Location == "gameover")
+            {
+                GameOver(hero);
             }
             else
             {
                 Console.Error.WriteLine($"You forgot to implement '{hero.Location}'!");
             }
         }
-        /*
-        do
-        {
-            Console.Write("What is your name, adventurer? ");
-            name = Console.ReadLine();
-            
-            Console.Write($"So, {name} it is? ");
-            string yesOrNo = Console.ReadLine().Trim().ToLower();
-
-            if (yesOrNo != "yes" && yesOrNo != "ok")
-            {
-                name = "";
-            }
-        } while (name == "");
         
-        do
-        {
-            name = Ask("What is your name, adventurer? ");
-        } while (!AskYesOrNo($"So, {name} it is? "));
-        */
-
+        Console.WriteLine("\nThank you for playing!");
     }
 
     static string Ask(string question)
@@ -71,7 +72,7 @@ class Program
         do
         {
             Console.Write(question);
-            response = Console.ReadLine().Trim();
+            response = Console.ReadLine().Trim().ToLower();
             
         } while (response == "");
 
@@ -111,7 +112,7 @@ class Program
         } while (!AskYesOrNo($"So, {name} it is? "));
 
         hero.Name = name;
-        hero.Location = "tableroom";
+        hero.Location = "church";
     }
     static void TableRoom(Hero hero)
     {
@@ -125,7 +126,7 @@ class Program
                           "" +
                           "You can only pick up one of these items.");
         while(true) {
-            string response = Ask("What item to do prefer? ").ToLower().Trim();
+            string response = Ask("What item to do prefer? ");
             if (response == "knife")
             {
                 hero.Items.Add("Knife");
@@ -254,6 +255,56 @@ class Program
         Console.Read(); // Fråga om varför denna read metoden skippades utan if satsen över.
     }
 
+    static void Barn(Hero hero)
+    {
+        Console.WriteLine("You enter into the barn. It is dark and there seems to be a room at the end.");
+        string response = Ask("Do you want to explore the ROOM in the barn or turn back towards the CHURCH?");
+        if (response == "room")
+        {
+            hero.Location = "barnfight";
+        }
+        else if (response == "church")
+        {
+            hero.Location = "church";
+        }
+    }
+
+    static void BarnFight(Hero hero)
+    {
+        List <Enemy> enemies = new List<Enemy>();
+    }
+    static void Vault(Hero hero)
+    {
+        
+        Console.WriteLine("As you enter the room you find riches beyond your imagination. \nYou go to grab a goblet of pure gold, but as soon as you touch it everything goes black");
+        hero.Location = "gameover";
+        Console.ReadLine();
+    }
+
+    static void Basement(Hero hero)
+    {
+        Console.WriteLine("The minotaur drags your lifeless body down the stairs into the basement, as you are being dragged, everything starts to fade");
+        hero.Location = "gameover";
+    }
+
+    static void GameOver(Hero hero)
+    {
+        Console.Clear();
+        Console.WriteLine("You wake up in a bed at the inn and the inkeeper asks \n");
+        string response = Ask("Do you want to go AGAIN or are you heading HOME?");
+        if (response == "home")
+        {
+            
+            hero.Location = "quit";
+        }
+        else if (response == "again")
+        {
+            hero.Items.Clear();
+            hero.Health = 100;
+            hero.Location = "newgame";
+        }
+
+    }
     static void Church(Hero hero)
     {
         Console.WriteLine("You enter the church, and the door slams shut behind you." +
@@ -261,12 +312,11 @@ class Program
                           "The figure turns towards you with a huge axe and starts to charge towards you.");
         bool winner;
         Enemy boss = new Enemy();
-        
+        Hero.SetDmg(hero);
         
         
         while(true)
         {
-            
             if (hero.Health <= 0)
             {
                 hero.Location = "basement";
@@ -275,15 +325,17 @@ class Program
 
             if (boss.Health <= 0)
             {
+                Console.WriteLine("The minotaur falls backwards and into a gate you did not see before, \nYou enter the room");
                 hero.Location = "vault";
                 break;
             }
-            //EnemyTurn(hero);
+            EnemyTurn(hero);
             PlayerTurn(hero, boss);
             
         }
         
     }
+    // Lägg till flavour
 
     static void EnemyTurn(Hero hero)
     {
@@ -295,7 +347,7 @@ class Program
         if (roll <= 2)
             {
                 Console.WriteLine("The minotaur swipes his axe at you");
-                string response = Ask("What do you want to do? Jump, parry or dodge? ").ToLower().Trim();
+                string response = Ask("What do you want to do? Jump, parry or dodge? ");
                 if (response == "parry")
                 {
                     hero.Health -= swipeDmg / 2;
@@ -320,7 +372,7 @@ class Program
             else if (roll > 2 && roll <= 4) //varför får vi varning här?
             {
                 Console.WriteLine("The minotaur attemps to kick you ");
-                string response = Ask("What do you want to do? Jump, parry or dodge? ").ToLower().Trim();
+                string response = Ask("What do you want to do? Jump, parry or dodge? ");
                 if (response == "parry")
                 {
                     hero.Health -= kickDmg;
@@ -344,7 +396,7 @@ class Program
             else if (roll >= 5)
             {
                 Console.WriteLine("The minotaur uses his axe to strike you from above ");
-                string response = Ask("What do you want to do? Jump, parry or dodge? ").ToLower().Trim();
+                string response = Ask("What do you want to do? Jump, parry or dodge? ");
                 if (response == "parry")
                 {
                     Console.WriteLine($"You parry his attack and deflect it towards the ground. You take no damage.");
@@ -369,9 +421,31 @@ class Program
             
     }
 
+    // Lägg till flavour
     static void PlayerTurn(Hero hero, Enemy boss)
     {
-        Hero.SetDmg(hero);
-        Console.WriteLine(hero.currentDmg);
+        string response = Ask("It's your turn to attack. \nDo you play it safe and SLASH in a big arch \nor try for a more risky and precise STAB? ");
+        if (response == "slash")
+        {
+            boss.Health -= hero.currentDmg;
+            Console.WriteLine($"{boss.Health} Boss HP");
+        }
+        else if (response == "stab")
+        {
+            if (RollD6() >= 4)
+            {
+                boss.Health -= hero.currentDmg * 2;
+                Console.WriteLine("You hit your mark!");
+                Console.Write($" {boss.Health} Boss HP");
+            }
+            else
+            {
+                Console.WriteLine("The boss dodges to the side and you miss.");
+                Console.Write($" {boss.Health} Boss HP");
+            }
+        }
+        
     }
+    
+    
 }
