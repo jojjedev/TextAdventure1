@@ -4,10 +4,14 @@ class Program
 {
     static void Main(string[] args)
     {
-        Console.WriteLine("Weclome to Text Adventure!");
+        Console.Clear();
+        Console.WriteLine("Welcome to Text Adventure!");
+        Console.ReadLine();
         string name = "";
-        Hero hero = new Hero();
-        while (hero.Location != "quit")
+        Hero hero = new Hero(); // Skapar spelaren
+        List <Items> inventory = new List<Items>(); // Skapar en lista för Item objekt som fylls på alternativt töms senare i spelet, agerar som spelarens inventory
+
+        while (hero.Location != "quit") //Läser av "Location" variabeln i Hero objektet, använder den för att anropa aktuella rummet(funktionen)
         {
             if (hero.Location == "newgame")
             {
@@ -15,19 +19,19 @@ class Program
             }
             else if (hero.Location == "tableroom")
             {
-                TableRoom(hero);
+                TableRoom(hero, inventory);
             }
             else if (hero.Location == "corridor")
             {
-                Corridor(hero);
+                Corridor(hero, inventory);
             }
             else if (hero.Location == "kitchen")
             {
-                Kitchen(hero);
+                Kitchen(hero, inventory);
             }
             else if (hero.Location == "lockedroom")
             {
-                LockedRoom(hero);
+                LockedRoom(hero, inventory);
             }
             else if (hero.Location == "courtyard")
             {
@@ -39,11 +43,11 @@ class Program
             }
             else if (hero.Location == "barnfight")
             {
-                BarnFight(hero);
+                BarnFight(hero, inventory);
             }
             else if (hero.Location == "backroom")
             {
-                BackRoom(hero);
+                BackRoom(hero, inventory);
             }
             else if (hero.Location == "church")
             {
@@ -59,7 +63,7 @@ class Program
             }
             else if (hero.Location == "gameover")
             {
-                GameOver(hero);
+                GameOver(hero, inventory);
             }
             else
             {
@@ -116,32 +120,37 @@ class Program
         } while (!AskYesOrNo($"So, {name} it is? "));
 
         hero.Name = name;
-        hero.Location = "tableroom";
+        hero.Location = "tableroom"; //efter varje rum så ändras Spelarens location variabel, och detta används i den tidiagre metoden som anropar location funktioner
     }
-    static void TableRoom(Hero hero)
+    static void TableRoom(Hero hero, List<Items> inventory)
     {
         Console.Clear();
-        hero.Items.Add("Wooden Sword");
+        Items woodenSword = new Items("woodenSword", 0); // Skapar ett item objekt, anger namnet "woodenSword" och modifier "0" för enbart detta objektet.
+        inventory.Add(woodenSword); // Lägger till woodenSword objektet till Inventory listan
         Console.WriteLine("You are equipped with one wooden sword, and your task " +
                           "is to slay the monster at the end of the adventure. " +
                           "" +
-                          "In front of you is a stone table with two items on it, " +
+                          "\nIn front of you is a stone table with two items on it, " +
                           "a knife and a key." +
                           "" +
-                          "You can only pick up one of these items.");
+                          "\nYou can only pick up one of these items.");
         while(true) {
             string response = Ask("What item to do prefer? ");
             if (response == "knife")
             {
-                hero.Items.Add("Knife");
-                Console.WriteLine("You have picked up the Knife! ");
+                Items knife = new Items("knife", 3);
+                inventory.Add(knife);
+                inventory.Remove(woodenSword); // Tar baort "woodenSword" objektet från listan
+                hero.currentDmg += knife.dmgModifier; // Updaterar Spelarens nuvarande damage värde
+                Console.WriteLine("\nYou have picked up the Knife! ");
                 Console.WriteLine("It has been added to your inventory! ");
                 break;
             }
             else if (response == "key")
             {
-                hero.Items.Add("key");
-                Console.WriteLine("You have picked up the Key! ");
+                Items key = new Items("key", 0);
+                inventory.Add(key);
+                Console.WriteLine("\nYou have picked up the Key! ");
                 Console.WriteLine("It has been added to your inventory! ");
                 break;
             }
@@ -157,25 +166,28 @@ class Program
             
             
         }
-        Console.WriteLine("You leave the room and enter the corridor.");
+        Console.WriteLine("\n\nYou leave the room and enter the corridor.");
+        Console.ReadLine();
+        Console.Clear();
         hero.Location = "corridor";
     }
 
-    static void Corridor(Hero hero)
+    static void Corridor(Hero hero, List<Items> inventory)
     {
-        Console.WriteLine("You exit the room and find yourself standing in a dark " + "hallway. " +
-                          "You can either enter another room on your right " + "side, " +
+        Console.WriteLine("You exit the room and find yourself standing in a dark hallway. " +
+                          "\nYou can either enter another room on your right " + "side, " +
                           "or continue down the hallway on your left.");
         string response = Ask("Which door do you want to enter? ");
+        Console.Clear();
         if (response == "left")
         {
-            if (hero.Items.Contains("key"))
+            if (SearchItem(inventory, "key"))
             {
                 Console.WriteLine("The door seems to be locked. You try the key you found in the tableroom and it works!" +
-                                  "You open the door and enter the room.");
+                                  "\n\nYou open the door and enter the room.");
                 Console.Read();
                 hero.Location = "lockedroom";
-                hero.Items.Remove("key");
+                removeItem(inventory, "key");
                 
             }
             else
@@ -185,7 +197,6 @@ class Program
                 Console.Read();
                 hero.Location = "kitchen";
             }
-
         }
         else if (response == "right")
         {
@@ -195,55 +206,66 @@ class Program
         
     }
 
-    static void LockedRoom(Hero hero)
+    static void LockedRoom(Hero hero, List<Items> inventory)
     {
         Console.Clear();
         Console.WriteLine("Inside the locked room... " +
                           "you find a shiny sword! ");
         if (AskYesOrNo("Do you want to swap your wooden sword? "))
         {
-            hero.Items.Remove("Wooden Sword");
-            hero.Items.Add("Shiny Sword");
+            Items shinySword = new Items("shinySword", 10);
+            removeItem(inventory, "woodenSword");
+            hero.currentDmg = hero.baseDmg;
+            inventory.Add(shinySword);
+            hero.currentDmg += shinySword.dmgModifier;
         }
-        Console.WriteLine("You exit out into the corridor and enter the last door at the end ");
+        Console.WriteLine("\nYou exit out into the corridor and enter the last door at the end ");
         Console.Read();
+        Console.Clear();
         hero.Location = "kitchen";
 
     }
 
-    static void Kitchen(Hero hero)
+    static void Kitchen(Hero hero, List<Items> inventory)
     {
-        Console.WriteLine("In the kitchen you see a closed chest, it does not seem to be looked.");
+        Console.WriteLine("In the kitchen you see a closed chest, it does not seem to be locked.");
         if (AskYesOrNo("Do you want to open the chest?"))
         {
-            Console.WriteLine("You see a chef's hat with a strange symbol of what looks like a spatula ");
+            Console.WriteLine("\nYou see a chef's hat with a strange symbol of what looks like a spatula ");
             if (AskYesOrNo("Do you grab the chef's hat? "))
             {
                 if (RollD6() >= 3)
                 {
-                    Console.WriteLine("The chef's hat is indeed magical, you feel inspired");
-                    hero.Items.Add("Magical chef's hat");
+                    Console.WriteLine("\nThe chef's hat is indeed magical, you feel inspired");
+                    Items magicalHat = new Items("magicalHat", 5);
+                    hero.currentDmg += magicalHat.dmgModifier;
+                    inventory.Add(magicalHat);
                 }
                 else
                 {
-                    Console.WriteLine("You get a wierd feeling from touching the hat");
-                    hero.Items.Add("Cursed chef's hat");
+                    Console.WriteLine("\nYou get a wierd feeling from touching the hat");
+                    Items cursedHat = new Items("cursedHat", -5);
+                    hero.currentDmg -= cursedHat.dmgModifier;
+                    inventory.Add(cursedHat);
                 }
             }
             else
             {
-                Console.WriteLine("Something about the hat doesn't feel right, you decide to ignore it");
+                Console.WriteLine("\nSomething about the hat doesn't feel right, you decide to ignore it");
             }
         }
 
+        Console.ReadLine();
+        Console.Clear();
         Console.WriteLine("You exit the kitchen and you enter into a massive courtyard");
         Console.Read();
+        Console.Clear();
         hero.Location = "courtyard";
     }
 
     static void Courtyard(Hero hero)
     {
-        Console.WriteLine("The courtyard is dark and path is leading away from the house. Up ahead it splits in two directions," +
+        Console.WriteLine("The courtyard is dark and path is leading away from the house. \nUp ahead it splits in two directions," +
                           "one path towards the church and another path towards the barn.");
         while (true)
         {
@@ -251,8 +273,8 @@ class Program
             if (response == "church")
             {
                 Console.WriteLine("You get a strange feeling as you aproach the chruch." +
-                                  "There is candle light glowing in the windows, even though it's long since abandoned." +
-                                  "As you get close, you realise that the door looks even bigger than you thought. You decide" +
+                                  "\nThere is candle light glowing in the windows, even though it's long since abandoned." +
+                                  "\nAs you get close, you realise that the door looks even bigger than you thought. \nYou decide" +
                                   "to investigate and open the door.");
                 hero.Location = "church";
                 break;
@@ -279,20 +301,17 @@ class Program
         else if (response == "church")
         {
             hero.Location = "church";
-
         }
-        
     }
 
-    static void BarnFight(Hero hero)
+    static void BarnFight(Hero hero, List<Items> inventory)
     {
-        Hero.SetDmg(hero);
-        List <Enemy> enemies = new List<Enemy>();
-        for (int i = 0; i < 3; i++)
+        List <Enemy> enemies = new List<Enemy>(); // Skapar en lista för Enemy objekt
+        for (int i = 0; i < 3; i++) // Denna loopen fyller listan med 3 olika Enemy objekt.
         {
             Enemy enemy = new Enemy();
-            enemy.Name = $"Minion{i+1}";
-            enemy.SetDmg(enemy);
+            enemy.Name = $"Minion{i+1}"; //Namnger varje objekt till minion + loopens nuvarande loop
+            enemy.SetStats(enemy); // I denna funktionen ändras varje enemy objekt till sin unika version
             enemies.Add(enemy);
         }
         
@@ -309,7 +328,6 @@ class Program
                     hero.Location = "gameover";
                 }
             }
-
             enemies.Remove(enemies[0]);
         }
         Console.WriteLine("You manage take down the animals! You decide to investigate the room in the back of the barn.");
@@ -317,7 +335,7 @@ class Program
         hero.Location = "backroom";
     }
 
-    static void BackRoom(Hero hero)
+    static void BackRoom(Hero hero, List<Items> inventory)
     {
         Console.WriteLine("You are in the backroom");
         Console.ReadLine();
@@ -326,7 +344,8 @@ class Program
         if (AskYesOrNo("Do you wish to equip it?"))
         {
             hero.Health += 50;
-            hero.Items.Add("Shiny Armor");
+            Items shinyArmor = new Items("shinyArmor", 0);
+            inventory.Add(shinyArmor);
         }
         Console.WriteLine("You also see a potion with a red liquid in it");
         if (AskYesOrNo("Do you drink the potion?"))
@@ -395,23 +414,22 @@ class Program
         hero.Location = "gameover";
     }
 
-    static void GameOver(Hero hero)
+    static void GameOver(Hero hero, List<Items> inventory)
     {
         Console.Clear();
-        Console.WriteLine("You wake up in a bed at the inn and the inkeeper asks \n");
+        Console.WriteLine("You wake up in a bed at the inn and the innkeeper asks \n");
         string response = Ask("Do you want to go AGAIN or are you heading HOME?");
         if (response == "home")
         {
-            
             hero.Location = "quit";
         }
-        else if (response == "again")
+        else if (response == "again") // tömmer inventory listan, och återställer spelaren till ursprungsvärden
         {
-            hero.Items.Clear();
+            inventory.Clear(); 
             hero.Health = 100;
+            hero.currentDmg = hero.baseDmg;
             hero.Location = "newgame";
         }
-
     }
     static void Church(Hero hero)
     {
@@ -421,8 +439,7 @@ class Program
         bool winner;
         Enemy boss = new Enemy();
         boss.Name = "Minotaur";
-        Hero.SetDmg(hero);
-        boss.SetDmg(boss);
+        boss.SetStats(boss);
         
         while(true)
         {
@@ -438,19 +455,16 @@ class Program
                 hero.Location = "vault";
                 break;
             }
-            EnemyTurn(hero, boss);
+            EnemyTurn(hero, boss); //Anropar funktionerna som styr vems tur det är under combat
             PlayerTurn(hero, boss);
-            
         }
-        
     }
-    // Lägg till flavour
 
     static void EnemyTurn(Hero hero, Enemy enemy)
     {
-        int roll = RollD6();
+        int roll = RollD6();//Slumpar ett värde 1-6
         
-        if (roll <= 2)
+        if (roll <= 2) //Det slumpade värdet styr vad för attack som sker
             {
                 enemy.AttackSwipe(enemy);
                 string response = Ask("What do you want to do? Jump, parry or dodge? ");
@@ -522,12 +536,8 @@ class Program
                     Console.WriteLine($"You jump straight into the attack and suffer a grievous wound. You take {enemy.strikeDmg * 2} damage. ");
                     Console.WriteLine(hero.Health);
                 }
-                
             }
-            
     }
-
-    // Lägg till flavour
     static void PlayerTurn(Hero hero, Enemy enemy)
     {
         string response = Ask("It's your turn to attack. \nDo you play it safe and SLASH in a big arch \nor try for a more risky and precise STAB? ");
@@ -542,18 +552,35 @@ class Program
             {
                 enemy.Health -= hero.currentDmg * 2;
                 Console.WriteLine("You hit your mark!");
-                Console.WriteLine(hero.currentDmg);
-                Console.WriteLine($" {enemy.Health} {enemy.Name} HP");
+                Console.WriteLine($"{enemy.Name} has {enemy.Health} HP left!");
             }
             else
             {
                 Console.WriteLine("The enemy dodges to the side and you miss.");
-                Console.WriteLine(hero.currentDmg);
-                Console.WriteLine($" {enemy.Health} {enemy.Name} HP");
+                Console.WriteLine($"{enemy.Name} still has {enemy.Health} HP left!");
             }
         }
-        
     }
-    
-    
+    static bool SearchItem(List<Items> inventory, string itemName) // Letar om namnet på ett item finns i inventory listan
+    {
+        for (int i = 0; i < inventory.Count; i++)
+        {
+            if (inventory[i].name == itemName)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    static void removeItem(List<Items> inventory, string itemName) // Letar först efter itemnamnet i inventory. Om det finns så tas det bort.
+    {
+        for (int i = 0; i < inventory.Count(); i++)
+        {
+            if (inventory[i].name == itemName)
+            {
+                inventory.Remove(inventory[i]);
+            }
+        }
+    }
 }

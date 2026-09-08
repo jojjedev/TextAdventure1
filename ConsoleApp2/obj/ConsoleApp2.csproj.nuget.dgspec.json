@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\c26johho\\RiderProjects\\ConsoleApp2\\ConsoleApp2\\ConsoleApp2.csproj": {}
+    "C:\\Users\\c26johho\\Documents\\GitHub\\TextAdventure1\\ConsoleApp2\\ConsoleApp2.csproj": {}
   },
   "projects": {
-    "C:\\Users\\c26johho\\RiderProjects\\ConsoleApp2\\ConsoleApp2\\ConsoleApp2.csproj": {
+    "C:\\Users\\c26johho\\Documents\\GitHub\\TextAdventure1\\ConsoleApp2\\ConsoleApp2.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\c26johho\\RiderProjects\\ConsoleApp2\\ConsoleApp2\\ConsoleApp2.csproj",
+        "projectUniqueName": "C:\\Users\\c26johho\\Documents\\GitHub\\TextAdventure1\\ConsoleApp2\\ConsoleApp2.csproj",
         "projectName": "ConsoleApp2",
-        "projectPath": "C:\\Users\\c26johho\\RiderProjects\\ConsoleApp2\\ConsoleApp2\\ConsoleApp2.csproj",
+        "projectPath": "C:\\Users\\c26johho\\Documents\\GitHub\\TextAdventure1\\ConsoleApp2\\ConsoleApp2.csproj",
         "packagesPath": "C:\\Users\\c26johho\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\c26johho\\RiderProjects\\ConsoleApp2\\ConsoleApp2\\obj\\",
+        "outputPath": "C:\\Users\\c26johho\\Documents\\GitHub\\TextAdventure1\\ConsoleApp2\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\c26johho\\AppData\\Roaming\\NuGet\\NuGet.Config"

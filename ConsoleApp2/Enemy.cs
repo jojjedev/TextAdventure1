@@ -9,7 +9,7 @@ public class Enemy
     public int strikeDmg;
     public int kickDmg;
 
-    public void SetDmg(Enemy enemy)
+    public void SetStats(Enemy enemy) // Funktionen som anropas för att göra enemies unika.
     {
         if (enemy.Name == "Minotaur")
         {
@@ -46,7 +46,7 @@ public class Enemy
         }
     }
 
-    public void AttackSwipe(Enemy enemy)
+    public void AttackSwipe(Enemy enemy) // Flavour för att endast använda en attackmetod för alla enemies.
     {
         if (enemy.Name == "Minotaur")
         {
